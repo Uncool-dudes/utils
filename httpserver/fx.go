@@ -6,6 +6,7 @@ import (
 	"go.uber.org/fx"
 )
 
+// Module provides *HttpServer to the fx container.
 var Module = fx.Module(
 	"httpserver",
 	fx.Provide(New),

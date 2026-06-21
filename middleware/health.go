@@ -24,10 +24,11 @@ func NewLivenessHandler() http.Handler {
 //	    middleware.Check{Name: "database", Check: svc.HealthCheck, Timeout: 2*time.Second},
 //	)
 func NewReadinessHandler(checks ...health.Check) http.Handler {
-	opts := []health.CheckerOption{
-		health.WithCacheDuration(5 * time.Second),
-		health.WithTimeout(10 * time.Second),
-	}
+	opts := make([]health.CheckerOption, 0, 2+len(checks))
+	opts = append(opts,
+		health.WithCacheDuration(5*time.Second),
+		health.WithTimeout(10*time.Second),
+	)
 	for _, c := range checks {
 		opts = append(opts, health.WithCheck(c))
 	}

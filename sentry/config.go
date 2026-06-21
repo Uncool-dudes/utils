@@ -18,6 +18,7 @@ type Config struct {
 	Logging          LoggingOptions    `json:"logging"`
 }
 
+// Defaults provides sane out-of-the-box Config values.
 var Defaults = Config{
 	Tags:             map[string]string{},
 	AttachStacktrace: true,

@@ -6,6 +6,7 @@ import (
 	riv "github.com/riverqueue/river"
 )
 
+// Config holds River async job queue settings.
 type Config struct {
 	Enabled                     bool                   `json:"enabled,omitempty"`
 	Queues                      map[string]QueueConfig `json:"queues,omitempty"`
@@ -19,20 +20,27 @@ type Config struct {
 	CancelledRetentionHours     int                    `json:"cancelledretentionhours,omitempty"`
 }
 
+// QueueConfig controls per-queue worker concurrency.
 type QueueConfig struct {
 	MaxWorkers int `json:"maxworkers" validate:"required,min=1"`
 }
 
 const (
-	DefaultMaxWorkers  = 10
+	// DefaultMaxWorkers is the default per-queue worker concurrency.
+	DefaultMaxWorkers = 10
+	// DefaultMaxAttempts is the default number of job attempts before discarding.
 	DefaultMaxAttempts = 5
+	// DefaultCompletedRetentionPeriod is how long completed jobs are kept.
 	// Completed jobs may carry PII in error/result fields — keep short.
 	DefaultCompletedRetentionPeriod = 24 * time.Hour
+	// DefaultDiscardedRetentionPeriod is how long discarded jobs are kept.
 	// Discarded = exceeded max attempts. Keep longer for saga investigation.
 	DefaultDiscardedRetentionPeriod = 72 * time.Hour
+	// DefaultCancelledRetentionPeriod is how long cancelled jobs are kept.
 	DefaultCancelledRetentionPeriod = 24 * time.Hour
 )
 
+// Defaults provides a single default queue with DefaultMaxWorkers.
 var Defaults = Config{
 	MaxAttempts: DefaultMaxAttempts,
 	Queues: map[string]QueueConfig{

@@ -8,7 +8,9 @@ type RotateConfig struct {
 	Compress   bool `koanf:"compress"`     // gzip rotated files
 }
 
-//nolint:gochecknoglobals
+// RotateDefaults provides sane log rotation defaults.
+//
+//nolint:gochecknoglobals // package-level defaults are intentional
 var RotateDefaults = RotateConfig{
 	MaxSizeMB:  10,
 	MaxBackups: 5,
@@ -36,7 +38,9 @@ type Config struct {
 	DisableStack    bool         `koanf:"disable_stacktrace"`
 }
 
-//nolint:gochecknoglobals
+// Defaults provides sane out-of-the-box Config values.
+//
+//nolint:gochecknoglobals // package-level defaults are intentional
 var Defaults = Config{
 	Level:           "info",
 	StacktraceLevel: "error",

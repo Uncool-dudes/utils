@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// RetryConfig controls exponential backoff retry behavior.
 type RetryConfig struct {
 	// MaxAttempts is total tries including the first (default 3).
 	MaxAttempts int
@@ -18,6 +19,7 @@ type RetryConfig struct {
 	Jitter bool
 }
 
+// RetryDefaults provides conservative retry defaults.
 var RetryDefaults = RetryConfig{
 	MaxAttempts: 3,
 	InitialWait: 100 * time.Millisecond,

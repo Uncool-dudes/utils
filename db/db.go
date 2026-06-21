@@ -9,24 +9,27 @@ import (
 	"github.com/uncool-dudes/utils/errors"
 )
 
+// Domain tags all errors from this package.
 var Domain = errors.NewDomain("db")
 
-type DBService struct {
+// Service manages a pgxpool and exposes transactional helpers.
+type Service struct {
 	config Config
 	pool   *pgxpool.Pool
 }
 
-func New(cfg Config) *DBService {
-	return &DBService{config: cfg}
+// New returns an uninitiated Service. Connect is deferred to OnStart via fx.Module.
+func New(cfg Config) *Service {
+	return &Service{config: cfg}
 }
 
 // Pool returns the underlying pgxpool. Safe to call after OnStart.
-func (o *DBService) Pool() *pgxpool.Pool {
+func (o *Service) Pool() *pgxpool.Pool {
 	return o.pool
 }
 
-// NewConnected creates a DBService and immediately connects. For use in tests and CLIs.
-func NewConnected(ctx context.Context, cfg Config) (*DBService, error) {
+// NewConnected creates a Service and immediately connects. For use in tests and CLIs.
+func NewConnected(ctx context.Context, cfg Config) (*Service, error) {
 	svc := New(cfg)
 	if err := svc.connect(ctx); err != nil {
 		return nil, err
@@ -34,7 +37,7 @@ func NewConnected(ctx context.Context, cfg Config) (*DBService, error) {
 	return svc, nil
 }
 
-func (o *DBService) connect(ctx context.Context) error {
+func (o *Service) connect(ctx context.Context) error {
 	cfg, err := pgxpool.ParseConfig(o.config.URL)
 	if err != nil {
 		return Domain.Mark(err, ErrConnFailed)
@@ -82,14 +85,15 @@ func (o *DBService) connect(ctx context.Context) error {
 	return nil
 }
 
-func (o *DBService) Close() {
+// Close closes the connection pool.
+func (o *Service) Close() {
 	if o.pool != nil {
 		o.pool.Close()
 	}
 }
 
 // WithTx runs fn inside a transaction. Rolls back on error, commits on success.
-func (o *DBService) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
+func (o *Service) WithTx(ctx context.Context, fn func(pgx.Tx) error) error {
 	tx, err := o.pool.Begin(ctx)
 	if err != nil {
 		return Domain.Wrap(err, "begin tx")

@@ -12,8 +12,10 @@ import (
 	"github.com/uncool-dudes/utils/errors"
 )
 
+// Domain tags all errors from this package.
 var Domain = errors.NewDomain("httpserver")
 
+// HttpServer manages a chi HTTP server and its lifecycle.
 type HttpServer struct {
 	mu     sync.Mutex
 	config Config
@@ -23,6 +25,7 @@ type HttpServer struct {
 	log    *zap.Logger
 }
 
+// New returns an HttpServer with the given config and logger.
 func New(cfg Config, log *zap.Logger) *HttpServer {
 	r := chi.NewRouter()
 	return &HttpServer{
@@ -47,7 +50,7 @@ func (s *HttpServer) Router() *chi.Mux {
 // Start binds synchronously so address-in-use errors surface immediately,
 // then serves in a background goroutine.
 func (s *HttpServer) Start() error {
-	ln, err := net.Listen("tcp", s.config.Addr)
+	ln, err := net.Listen("tcp", s.config.Addr) //nolint:noctx // Start has no context; bind errors surface synchronously
 	if err != nil {
 		return Domain.Mark(err, ErrStartFailed)
 	}
@@ -70,6 +73,7 @@ func (s *HttpServer) Reload(cfg Config) {
 	s.srv.IdleTimeout = cfg.IdleTimeout
 }
 
+// Shutdown gracefully drains connections within the given context deadline.
 func (s *HttpServer) Shutdown(ctx context.Context) error {
 	if ctx.Err() != nil {
 		_ = s.ln.Close()

@@ -2,6 +2,7 @@ package db
 
 import "time"
 
+// Config holds pgxpool connection settings.
 type Config struct {
 	URL string `koanf:"url" validate:"required"`
 
@@ -20,6 +21,7 @@ type Config struct {
 	HealthCheckPeriod time.Duration `koanf:"health_check_period"`
 }
 
+// Defaults provides sane out-of-the-box Config values.
 var Defaults = Config{
 	MaxConns:              20,
 	MinConns:              2,

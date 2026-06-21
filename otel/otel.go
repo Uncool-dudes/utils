@@ -34,10 +34,10 @@ import (
 	"github.com/uncool-dudes/utils/errors"
 )
 
-var (
-	Domain   = errors.NewDomain("otel")
-	validate = validator.New()
-)
+// Domain tags all errors from this package.
+var Domain = errors.NewDomain("otel")
+
+var validate = validator.New()
 
 // Provider holds all three SDK providers and coordinates their shutdown.
 type Provider struct {

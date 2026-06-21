@@ -9,11 +9,13 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 )
 
+// Service manages a go-redis client and its lifecycle.
 type Service struct {
 	config Config
 	client *goredis.Client
 }
 
+// New returns an uninitiated Service. Connect is deferred to OnStart via fx.Module.
 func New(cfg Config) *Service {
 	return &Service{config: cfg}
 }
@@ -36,7 +38,7 @@ func (s *Service) connect(ctx context.Context) error {
 
 	if s.config.TLSEnabled {
 		tlsCfg := &tls.Config{
-			InsecureSkipVerify: s.config.Insecure, //nolint:gosec
+			InsecureSkipVerify: s.config.Insecure, //nolint:gosec // InsecureSkipVerify is user-controlled via config
 		}
 		if s.config.CACert != "" {
 			pem, err := os.ReadFile(s.config.CACert)
@@ -69,11 +71,12 @@ func (s *Service) connect(ctx context.Context) error {
 	return nil
 }
 
-// Client returns the underlying go-redis client. Safe to call after OnStart.
+// Client returns the underlying go-redis client. Safe after OnStart.
 func (s *Service) Client() *goredis.Client {
 	return s.client
 }
 
+// Close closes the Redis connection.
 func (s *Service) Close() error {
 	if s.client != nil {
 		return s.client.Close()
@@ -81,7 +84,7 @@ func (s *Service) Close() error {
 	return nil
 }
 
-// NewConnected creates a Service and immediately connects. Use in tests and CLIs.
+// NewConnected creates and immediately connects a Service. Use in tests and CLIs.
 func NewConnected(ctx context.Context, cfg Config) (*Service, error) {
 	svc := New(cfg)
 	if err := svc.connect(ctx); err != nil {

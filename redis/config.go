@@ -2,6 +2,7 @@ package redis
 
 import "time"
 
+// Config holds connection settings for the Redis/Valkey client.
 type Config struct {
 	Addr     string `koanf:"addr"     validate:"required"`
 	Username string `koanf:"username"`
@@ -23,6 +24,7 @@ type Config struct {
 	WriteTimeout time.Duration `koanf:"write_timeout"`
 }
 
+// Defaults provides sane out-of-the-box Config values.
 var Defaults = Config{
 	Addr:            "localhost:6379",
 	DB:              0,

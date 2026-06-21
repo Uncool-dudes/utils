@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Module provides *Client to the fx container. Caller must supply river.Config and *pgxpool.Pool.
 var Module = fx.Module(
 	"river",
 	fx.Provide(newClient),

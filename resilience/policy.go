@@ -15,13 +15,15 @@ type Policy struct {
 	timeout     time.Duration
 }
 
+// PolicyOption configures a Policy.
 type PolicyOption func(*Policy)
 
+// WithCircuitBreaker adds circuit breaker protection to the policy.
 func WithCircuitBreaker(cfg CBConfig) PolicyOption {
 	return func(p *Policy) { p.cb = NewCircuitBreaker(cfg) }
 }
 
-// WithRetry enables retries. isRetryable determines which errors are transient.
+// WithRetry enables exponential backoff retry. isRetryable determines which errors are transient.
 func WithRetry(cfg RetryConfig, isRetryable func(error) bool) PolicyOption {
 	return func(p *Policy) {
 		p.retry = &cfg
@@ -29,14 +31,17 @@ func WithRetry(cfg RetryConfig, isRetryable func(error) bool) PolicyOption {
 	}
 }
 
+// WithThrottle adds outbound rate throttling to the policy.
 func WithThrottle(cfg ThrottleConfig) PolicyOption {
 	return func(p *Policy) { p.throttle = NewThrottle(cfg) }
 }
 
+// WithTimeout sets a per-execution context deadline on the policy.
 func WithTimeout(d time.Duration) PolicyOption {
 	return func(p *Policy) { p.timeout = d }
 }
 
+// NewPolicy creates a Policy from the given options.
 func NewPolicy(opts ...PolicyOption) *Policy {
 	p := &Policy{}
 	for _, opt := range opts {

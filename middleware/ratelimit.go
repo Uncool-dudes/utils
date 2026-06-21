@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// RateLimitConfig controls distributed HTTP rate limiting behavior.
 type RateLimitConfig struct {
 	Limit  int64
 	Window time.Duration

@@ -16,7 +16,7 @@ func Migrate(ctx context.Context, connURL, migrationsDir string) error {
 	if err != nil {
 		return Domain.Wrap(err, "migrate: connect")
 	}
-	defer conn.Close(ctx)
+	defer func() { _ = conn.Close(ctx) }()
 
 	m, err := migrate.NewMigrator(ctx, conn, "schema_version")
 	if err != nil {

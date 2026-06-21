@@ -18,20 +18,25 @@ type HTTPError struct {
 func (e *HTTPError) Error() string { return e.Message }
 func (e *HTTPError) Unwrap() error { return e.cause }
 
+// BadRequest returns a 400 HTTPError.
 func BadRequest(code, msg string) *HTTPError {
 	return &HTTPError{http.StatusBadRequest, code, msg, nil}
 }
 
+// Unauthorized returns a 401 HTTPError.
 func Unauthorized(code, msg string) *HTTPError {
 	return &HTTPError{http.StatusUnauthorized, code, msg, nil}
 }
 
+// NotFound returns a 404 HTTPError.
 func NotFound(code, msg string) *HTTPError { return &HTTPError{http.StatusNotFound, code, msg, nil} }
 
+// Unprocessable returns a 422 HTTPError.
 func Unprocessable(code, msg string) *HTTPError {
 	return &HTTPError{http.StatusUnprocessableEntity, code, msg, nil}
 }
 
+// Internal returns a 500 HTTPError wrapping err.
 func Internal(err error) *HTTPError {
 	return &HTTPError{http.StatusInternalServerError, "ERR_INTERNAL", "internal server error", err}
 }

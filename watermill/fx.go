@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Module provides watermill publisher, subscriber, and router to the fx container.
 var Module = fx.Module(
 	"watermill",
 	fx.Provide(newPublisher),

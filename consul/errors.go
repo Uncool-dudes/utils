@@ -1,5 +1,6 @@
 package consul
 
+// Sentinel errors returned by the consul package.
 var (
 	ErrInvalidAddr = Domain.New("invalid consul address")
 	ErrConnect     = Domain.New("failed to connect to consul")

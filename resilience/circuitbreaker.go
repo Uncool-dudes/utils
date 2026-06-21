@@ -6,10 +6,12 @@ import (
 	"github.com/sony/gobreaker/v2"
 )
 
+// CircuitBreaker wraps sony/gobreaker/v2 with a domain-friendly API.
 type CircuitBreaker struct {
 	cb *gobreaker.CircuitBreaker[any]
 }
 
+// CBConfig controls circuit breaker behavior.
 type CBConfig struct {
 	Name string
 
@@ -32,12 +34,14 @@ type CBConfig struct {
 	OnStateChange func(name string, from, to gobreaker.State)
 }
 
+// CBDefaults provides conservative circuit breaker defaults.
 var CBDefaults = CBConfig{
 	MaxRequests:         1,
 	Timeout:             60 * time.Second,
 	ConsecutiveFailures: 5,
 }
 
+// NewCircuitBreaker creates a CircuitBreaker from cfg.
 func NewCircuitBreaker(cfg CBConfig) *CircuitBreaker {
 	readyToTrip := cfg.ReadyToTrip
 	if readyToTrip == nil {
@@ -72,14 +76,17 @@ func NewCircuitBreaker(cfg CBConfig) *CircuitBreaker {
 	return &CircuitBreaker{cb: cb}
 }
 
+// Execute runs fn through the circuit breaker.
 func (c *CircuitBreaker) Execute(fn func() (any, error)) (any, error) {
 	return c.cb.Execute(fn)
 }
 
+// State returns the current circuit breaker state.
 func (c *CircuitBreaker) State() gobreaker.State {
 	return c.cb.State()
 }
 
+// Name returns the circuit breaker name.
 func (c *CircuitBreaker) Name() string {
 	return c.cb.Name()
 }

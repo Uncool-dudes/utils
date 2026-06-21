@@ -23,7 +23,7 @@ type Service struct {
 	mu   sync.RWMutex
 }
 
-//nolint:gocritic
+// New builds a zap logger Service from cfg.
 func New(cfg Config, opts ...Option) (*Service, error) {
 	o := &options{}
 	for _, opt := range opts {
@@ -94,20 +94,25 @@ func New(cfg Config, opts ...Option) (*Service, error) {
 	return &Service{atom: atom, cfg: cfg, log: log}, nil
 }
 
+// Logger returns the underlying zap.Logger.
 func (s *Service) Logger() *zap.Logger {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.log
 }
 
+// Named returns a child logger with the given name.
 func (s *Service) Named(name string) *zap.Logger {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.log.Named(name)
 }
 
+// SetLevel changes the logger's level at runtime.
 func (s *Service) SetLevel(l zapcore.Level) { s.atom.SetLevel(l) }
 
+// Reload applies updated config without restarting.
+//
 //nolint:gocritic
 func (s *Service) Reload(cfg Config, opts ...Option) error {
 	lvl, err := parseLevel(cfg.Level)
@@ -130,6 +135,7 @@ func (s *Service) Reload(cfg Config, opts ...Option) error {
 	return nil
 }
 
+// Sync flushes buffered log entries.
 func (s *Service) Sync() error {
 	s.mu.RLock()
 	log := s.log
@@ -150,16 +156,20 @@ type options struct {
 	extraCores   []zapcore.Core
 }
 
+// Option configures logger construction.
 type Option func(*options)
 
+// WithSamplingHook registers a callback fired on each sampling decision.
 func WithSamplingHook(fn func(zapcore.Entry, zapcore.SamplingDecision)) Option {
 	return func(o *options) { o.samplingHook = fn }
 }
 
+// WithPreWriteHook registers a callback invoked before each log write.
 func WithPreWriteHook(fn func(zapcore.Entry) error) Option {
 	return func(o *options) { o.preWriteHook = fn }
 }
 
+// WithExtraCore adds an additional zapcore.Core to the logger.
 func WithExtraCore(c zapcore.Core) Option {
 	return func(o *options) { o.extraCores = append(o.extraCores, c) }
 }

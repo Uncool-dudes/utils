@@ -3,6 +3,7 @@ package otel
 // ExporterKind controls where telemetry data is sent.
 type ExporterKind string
 
+// Supported exporter kinds.
 const (
 	ExporterOTLP       ExporterKind = "otlp"
 	ExporterPrometheus ExporterKind = "prometheus" // metrics only
@@ -29,7 +30,9 @@ type Config struct {
 	Disable        bool              `koanf:"disable"` // noop providers — useful in tests
 }
 
-//nolint:gochecknoglobals
+// Defaults provides sane out-of-the-box Config values.
+//
+//nolint:gochecknoglobals // package-level defaults are intentional
 var Defaults = Config{
 	Endpoint:       "localhost:4317",
 	Insecure:       true,

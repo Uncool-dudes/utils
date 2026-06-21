@@ -1,5 +1,6 @@
 package watermill
 
+// Sentinel errors returned by the watermill package.
 var (
 	ErrInvalidConfig = Domain.New("invalid watermill config")
 	ErrPublisher     = Domain.New("failed to create publisher")

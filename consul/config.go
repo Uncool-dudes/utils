@@ -1,5 +1,6 @@
 package consul
 
+// Config holds Consul service discovery settings.
 type Config struct {
 	Addr string   `koanf:"addr" validate:"required"`
 	Tags []string `koanf:"tags"`
@@ -8,7 +9,9 @@ type Config struct {
 	Meta map[string]string `koanf:"meta"`
 }
 
-//nolint:gochecknoglobals
+// Defaults provides sane out-of-the-box Config values.
+//
+//nolint:gochecknoglobals // package-level defaults are intentional
 var Defaults = Config{
 	Addr: "localhost:8500",
 	Tags: []string{"prometheus"},

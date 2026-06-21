@@ -9,6 +9,7 @@ import (
 	"github.com/xdg-go/scram"
 )
 
+// SASLConfig holds SASL authentication settings.
 type SASLConfig struct {
 	Enable    bool   `json:"enable"`
 	Mechanism string `json:"mechanism" validate:"omitempty,oneof=PLAIN SCRAM-SHA-256 SCRAM-SHA-512"`
@@ -16,6 +17,7 @@ type SASLConfig struct {
 	Password  string `json:"password"`
 }
 
+// TLSConfig holds TLS settings for Kafka connections.
 type TLSConfig struct {
 	Enable             bool   `json:"enable"`
 	InsecureSkipVerify bool   `json:"insecure_skip_verify"`
@@ -24,12 +26,14 @@ type TLSConfig struct {
 	ClientKey          string `json:"client_key"`
 }
 
+// RetryConfig holds Kafka publisher retry settings.
 type RetryConfig struct {
 	MaxRetries        int     `json:"max_retries"`
 	InitialIntervalMs int     `json:"initial_interval_ms"`
 	Multiplier        float64 `json:"multiplier"`
 }
 
+// Config holds Watermill/Kafka connection settings.
 type Config struct {
 	Brokers          []string    `json:"brokers"           validate:"required,min=1"`
 	ConsumerGroup    string      `json:"consumer_group"    validate:"required"`
@@ -39,6 +43,7 @@ type Config struct {
 	Retry            RetryConfig `json:"retry"`
 }
 
+// Defaults provides sane out-of-the-box Config values.
 var Defaults = Config{
 	Retry: RetryConfig{
 		MaxRetries:        3,
@@ -80,7 +85,7 @@ func buildSaramaConfig(cfg Config) (*sarama.Config, error) {
 
 	if cfg.TLS.Enable {
 		tlsCfg := &tls.Config{
-			InsecureSkipVerify: cfg.TLS.InsecureSkipVerify, //nolint:gosec
+			InsecureSkipVerify: cfg.TLS.InsecureSkipVerify, //nolint:gosec // InsecureSkipVerify is user-controlled via config
 		}
 		if cfg.TLS.CACert != "" {
 			pem, err := os.ReadFile(cfg.TLS.CACert)

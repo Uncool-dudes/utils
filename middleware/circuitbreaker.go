@@ -25,7 +25,7 @@ func CircuitBreakerTransport(cb *resilience.CircuitBreaker, next http.RoundTripp
 
 func (t *cbTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	result, err := t.cb.Execute(func() (any, error) {
-		return t.next.RoundTrip(req)
+		return t.next.RoundTrip(req) //nolint:bodyclose // response body is returned to the caller
 	})
 	if err != nil {
 		return nil, err

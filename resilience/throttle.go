@@ -6,6 +6,7 @@ import (
 	"go.uber.org/ratelimit"
 )
 
+// ThrottleConfig controls outbound rate throttling.
 type ThrottleConfig struct {
 	// RPS is requests per second. Required.
 	RPS int
@@ -13,10 +14,12 @@ type ThrottleConfig struct {
 	Slack int
 }
 
+// Throttle applies a leaky-bucket rate limit to outbound calls.
 type Throttle struct {
 	rl ratelimit.Limiter
 }
 
+// NewThrottle creates a Throttle at cfg.RPS requests per second.
 func NewThrottle(cfg ThrottleConfig) *Throttle {
 	opts := []ratelimit.Option{}
 	if cfg.Slack > 0 {

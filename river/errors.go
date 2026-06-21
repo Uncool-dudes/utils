@@ -1,5 +1,6 @@
 package river
 
+// Sentinel errors returned by the river package.
 var (
 	ErrInvalidConfig = Domain.New("invalid river config")
 	ErrConnect       = Domain.New("failed to create river client")

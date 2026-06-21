@@ -2,10 +2,14 @@ package logger
 
 import "github.com/uncool-dudes/utils/errors"
 
-//nolint:gochecknoglobals
+// Domain tags all errors from this package.
+//
+//nolint:gochecknoglobals // package-level domain is intentional
 var Domain = errors.NewDomain("logger")
 
-//nolint:gochecknoglobals,revive
+// Sentinel errors returned by the logger package.
+//
+//nolint:gochecknoglobals // package-level sentinels are intentional
 var (
 	ErrInvalidLevel    = Domain.New("invalid log level")
 	ErrInvalidEncoding = Domain.New("invalid encoding")

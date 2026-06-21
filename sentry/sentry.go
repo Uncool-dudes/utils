@@ -7,10 +7,10 @@ import (
 	"github.com/uncool-dudes/utils/errors"
 )
 
-var (
-	Domain   = errors.NewDomain("sentry")
-	validate = validator.New()
-)
+// Domain tags all errors from this package.
+var Domain = errors.NewDomain("sentry")
+
+var validate = validator.New()
 
 // Init initialises the global Sentry hub. Call once before any goroutines that
 // may panic or call CaptureException. Omit the sentry config block to skip init.

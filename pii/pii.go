@@ -14,5 +14,7 @@ package pii
 
 import "github.com/uncool-dudes/utils/errors"
 
-//nolint:gochecknoglobals
+// Domain tags all errors from this package.
+//
+//nolint:gochecknoglobals // package-level domain is intentional
 var Domain = errors.NewDomain("pii")

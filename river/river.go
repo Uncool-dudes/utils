@@ -11,11 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// Client wraps a River async job client with domain-aware error handling.
 type Client struct {
 	client  *riv.Client[pgx.Tx]
 	workers *riv.Workers
 }
 
+// New creates a River Client. cfg may be nil to use Defaults.
 func New(pool *pgxpool.Pool, log *zap.Logger, cfg *Config) (*Client, error) {
 	workers := riv.NewWorkers()
 	riverCfg := BuildRiverConfig(cfg, workers)
@@ -38,8 +40,11 @@ func New(pool *pgxpool.Pool, log *zap.Logger, cfg *Config) (*Client, error) {
 	return &Client{client: client, workers: riverCfg.Workers}, nil
 }
 
+// Client returns the underlying river client.
 func (c *Client) Client() *riv.Client[pgx.Tx] { return c.client }
-func (c *Client) Workers() *riv.Workers       { return c.workers }
+
+// Workers returns the workers registry used by this client.
+func (c *Client) Workers() *riv.Workers { return c.workers }
 
 // InsertTx enqueues a job within an existing transaction. The job row commits or
 // rolls back atomically with the surrounding business changes — prevents the
@@ -72,6 +77,6 @@ func (c *Client) InsertManyTx(ctx context.Context, tx pgx.Tx, params []riv.Inser
 // final). Filter by event.Job.State == rivertype.JobStateDiscarded to target
 // only jobs that exceeded max attempts — permanently lost work that needs
 // alerting.
-func (c *Client) FailedEvents() (<-chan *riv.Event, func()) {
+func (c *Client) FailedEvents() (events <-chan *riv.Event, cancel func()) {
 	return c.client.Subscribe(riv.EventKindJobFailed)
 }
