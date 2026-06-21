@@ -71,17 +71,25 @@ func New(cfg Config) (*Provider, error) {
 		return nil, err
 	}
 
-	tp, err := buildTracerProvider(cfg, res)
+	var conn *grpc.ClientConn
+	if !cfg.Disable {
+		conn, err = grpcConn(cfg)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tp, err := buildTracerProvider(cfg, res, conn)
 	if err != nil {
 		return nil, err
 	}
 
-	mp, err := buildMeterProvider(cfg, res)
+	mp, err := buildMeterProvider(cfg, res, conn)
 	if err != nil {
 		return nil, err
 	}
 
-	lp, err := buildLoggerProvider(cfg, res)
+	lp, err := buildLoggerProvider(cfg, res, conn)
 	if err != nil {
 		return nil, err
 	}
@@ -112,14 +120,19 @@ func buildResource(cfg Config) (*resource.Resource, error) {
 	return r, nil
 }
 
-func grpcDialOpts(cfg Config) []grpc.DialOption {
+func grpcConn(cfg Config) (*grpc.ClientConn, error) {
+	opts := []grpc.DialOption{}
 	if cfg.Insecure {
-		return []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
-	return nil
+	conn, err := grpc.NewClient(cfg.Endpoint, opts...)
+	if err != nil {
+		return nil, Domain.Wrapf(err, "dial otel endpoint")
+	}
+	return conn, nil
 }
 
-func buildTracerProvider(cfg Config, res *resource.Resource) (*sdktrace.TracerProvider, error) {
+func buildTracerProvider(cfg Config, res *resource.Resource, conn *grpc.ClientConn) (*sdktrace.TracerProvider, error) {
 	if cfg.Disable {
 		return sdktrace.NewTracerProvider(), nil
 	}
@@ -134,10 +147,9 @@ func buildTracerProvider(cfg Config, res *resource.Resource) (*sdktrace.TracerPr
 	default: // otlp — compatible with Jaeger 1.35+ on port 4317
 		exp, err = otlptracegrpc.New(
 			context.Background(),
-			otlptracegrpc.WithEndpoint(cfg.Endpoint),
+			otlptracegrpc.WithGRPCConn(conn),
 			otlptracegrpc.WithHeaders(cfg.Headers),
 			otlptracegrpc.WithTimeout(10*time.Second),
-			otlptracegrpc.WithDialOption(grpcDialOpts(cfg)...),
 		)
 	}
 	if err != nil {
@@ -156,7 +168,7 @@ func buildTracerProvider(cfg Config, res *resource.Resource) (*sdktrace.TracerPr
 	), nil
 }
 
-func buildMeterProvider(cfg Config, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
+func buildMeterProvider(cfg Config, res *resource.Resource, conn *grpc.ClientConn) (*sdkmetric.MeterProvider, error) {
 	if cfg.Disable {
 		return sdkmetric.NewMeterProvider(), nil
 	}
@@ -175,16 +187,15 @@ func buildMeterProvider(cfg Config, res *resource.Resource) (*sdkmetric.MeterPro
 	case ExporterOTLP:
 		exp, e := otlpmetricgrpc.New(
 			context.Background(),
-			otlpmetricgrpc.WithEndpoint(cfg.Endpoint),
+			otlpmetricgrpc.WithGRPCConn(conn),
 			otlpmetricgrpc.WithHeaders(cfg.Headers),
 			otlpmetricgrpc.WithTimeout(10*time.Second),
-			otlpmetricgrpc.WithDialOption(grpcDialOpts(cfg)...),
 		)
 		if e != nil {
 			return nil, Domain.Mark(e, ErrInit)
 		}
 		reader = sdkmetric.NewPeriodicReader(exp, sdkmetric.WithInterval(15*time.Second))
-	default: // prometheus — Jaeger doesn't scrape metrics; use a separate Prometheus instance
+	default: // prometheus — use a separate Prometheus/Mimir instance
 		reader, err = promexporter.New()
 		if err != nil {
 			return nil, Domain.Mark(err, ErrInit)
@@ -197,7 +208,7 @@ func buildMeterProvider(cfg Config, res *resource.Resource) (*sdkmetric.MeterPro
 	), nil
 }
 
-func buildLoggerProvider(cfg Config, res *resource.Resource) (*sdklog.LoggerProvider, error) {
+func buildLoggerProvider(cfg Config, res *resource.Resource, conn *grpc.ClientConn) (*sdklog.LoggerProvider, error) {
 	if cfg.Disable {
 		return sdklog.NewLoggerProvider(), nil
 	}
@@ -212,10 +223,9 @@ func buildLoggerProvider(cfg Config, res *resource.Resource) (*sdklog.LoggerProv
 	default: // otlp — route to OTel Collector or a log backend (Loki, etc.)
 		exp, err = otlploggrpc.New(
 			context.Background(),
-			otlploggrpc.WithEndpoint(cfg.Endpoint),
+			otlploggrpc.WithGRPCConn(conn),
 			otlploggrpc.WithHeaders(cfg.Headers),
 			otlploggrpc.WithTimeout(10*time.Second),
-			otlploggrpc.WithDialOption(grpcDialOpts(cfg)...),
 		)
 	}
 	if err != nil {
