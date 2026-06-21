@@ -22,7 +22,7 @@ func NewPublisher(cfg Config, log *zap.Logger) (message.Publisher, error) {
 		newLogger(log),
 	)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrPublisher)
+		return nil, Domain.Mark(err, ErrPublisher) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return pub, nil
 }

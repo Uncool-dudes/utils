@@ -46,7 +46,7 @@ func Retry(ctx context.Context, cfg RetryConfig, isRetryable func(error) bool, f
 			break
 		}
 		if ctx.Err() != nil {
-			return ctx.Err()
+			return ctx.Err() //nolint:wrapcheck // context.Err() is idiomatic to return unwrapped
 		}
 
 		sleep := wait
@@ -57,7 +57,7 @@ func Retry(ctx context.Context, cfg RetryConfig, isRetryable func(error) bool, f
 
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return ctx.Err() //nolint:wrapcheck // context.Err() is idiomatic to return unwrapped
 		case <-time.After(sleep):
 		}
 
@@ -68,5 +68,5 @@ func Retry(ctx context.Context, cfg RetryConfig, isRetryable func(error) bool, f
 		wait = next
 	}
 
-	return Domain.Mark(err, ErrMaxRetries)
+	return Domain.Mark(err, ErrMaxRetries) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 }

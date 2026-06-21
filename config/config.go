@@ -73,7 +73,7 @@ func New[T any](path string, opts ...Option) (*Parser[T], error) {
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, Domain.Mark(err, ErrNotFound)
+		return nil, Domain.Mark(err, ErrNotFound) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	parser, err := parserFor(path)
@@ -117,10 +117,10 @@ func New[T any](path string, opts ...Option) (*Parser[T], error) {
 
 	cp := &Parser[T]{k: k, fp: fp, parser: parser, opts: cfg, validate: validator.New()}
 	if err := unmarshal(k, &cp.current); err != nil {
-		return nil, Domain.Mark(err, ErrMalformed)
+		return nil, Domain.Mark(err, ErrMalformed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	if err := cp.validate.Struct(cp.current); err != nil {
-		return nil, Domain.Mark(err, ErrMalformed)
+		return nil, Domain.Mark(err, ErrMalformed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	return cp, nil
@@ -138,7 +138,7 @@ func (cp *Parser[T]) Get() T {
 // internal state is only updated on a successful unmarshal.
 // Returns an error if the file watcher cannot be registered.
 func (cp *Parser[T]) Watch(onChange func(T, error)) error {
-	return cp.fp.Watch(func(_ interface{}, err error) {
+	if err := cp.fp.Watch(func(_ interface{}, err error) {
 		if err != nil {
 			var zero T
 			onChange(zero, Domain.Wrap(err, "watch event"))
@@ -181,13 +181,16 @@ func (cp *Parser[T]) Watch(onChange func(T, error)) error {
 		cp.k = k
 		cp.mu.Unlock()
 		onChange(val, nil) // called outside lock — onChange may call Get()
-	})
+	}); err != nil {
+		return Domain.Wrap(err, "register file watcher")
+	}
+	return nil
 }
 
 // --- helpers ---
 
 func unmarshal[T any](k *koanf.Koanf, out *T) error {
-	return k.UnmarshalWithConf("", out, koanf.UnmarshalConf{Tag: "koanf"})
+	return Domain.Wrap(k.UnmarshalWithConf("", out, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal")
 }
 
 func parserFor(path string) (koanf.Parser, error) {

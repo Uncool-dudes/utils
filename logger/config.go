@@ -47,6 +47,6 @@ var Defaults = Config{
 	SamplingInitial: 100,
 	SamplingAfter:   100,
 	Sinks: []SinkConfig{
-		{Path: "stdout", Encoding: "console"},
+		{Path: sinkStdout, Encoding: encodingConsole},
 	},
 }

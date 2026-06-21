@@ -10,8 +10,12 @@ import (
 // as exceptions, preserving structured fields and stack traces.
 // Must be called after Init.
 func NewZapCore() (zapcore.Core, error) {
-	return zapsentry.NewCore(zapsentry.Configuration{
+	core, err := zapsentry.NewCore(zapsentry.Configuration{
 		Level:         zapcore.ErrorLevel,
 		LoggerNameKey: "logger",
 	}, zapsentry.NewSentryClientFromClient(sdk.CurrentHub().Client()))
+	if err != nil {
+		return nil, Domain.Wrap(err, "create sentry zap core")
+	}
+	return core, nil
 }

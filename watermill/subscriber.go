@@ -24,7 +24,7 @@ func NewSubscriber(cfg Config, log *zap.Logger) (message.Subscriber, error) {
 		newLogger(log),
 	)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrSubscriber)
+		return nil, Domain.Mark(err, ErrSubscriber) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return sub, nil
 }

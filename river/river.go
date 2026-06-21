@@ -35,7 +35,7 @@ func New(pool *pgxpool.Pool, log *zap.Logger, cfg *Config) (*Client, error) {
 
 	client, err := riv.NewClient(riverpgxv5.New(pool), riverCfg)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrConnect)
+		return nil, Domain.Mark(err, ErrConnect) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	return &Client{client: client, workers: riverCfg.Workers}, nil
 }

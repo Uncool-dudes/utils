@@ -6,10 +6,12 @@ import (
 	"strings"
 )
 
+const redacted = "***"
+
 func maskEmail(s string) string {
 	at := strings.Index(s, "@")
 	if at <= 0 {
-		return "***"
+		return redacted
 	}
 	local := s[:at]
 	domain := s[at:]
@@ -24,7 +26,7 @@ func maskPhone(s string) string {
 	// +919876543210 → +91*******210
 	r := []rune(s)
 	if len(r) <= 6 {
-		return "***"
+		return redacted
 	}
 	masked := make([]rune, len(r))
 	copy(masked, r)
@@ -40,7 +42,7 @@ func maskName(s string) string {
 	r := []rune(strings.TrimSpace(s))
 	switch len(r) {
 	case 0:
-		return "***"
+		return redacted
 	case 1:
 		return string(r[0]) + "*"
 	case 2:
@@ -70,7 +72,7 @@ func maskIP(addr netip.Addr) string {
 func maskTaxID(s string) string {
 	r := []rune(s)
 	if len(r) <= 4 {
-		return "***"
+		return redacted
 	}
 	// keep first 2 and last 2, mask middle
 	return string(r[:2]) + strings.Repeat("*", len(r)-4) + string(r[len(r)-2:])

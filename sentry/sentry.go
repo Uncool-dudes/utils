@@ -16,7 +16,7 @@ var validate = validator.New()
 // may panic or call CaptureException. Omit the sentry config block to skip init.
 func Init(cfg Config) error {
 	if err := validate.Struct(cfg); err != nil {
-		return Domain.Mark(err, ErrInvalidConfig)
+		return Domain.Mark(err, ErrInvalidConfig) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 
 	if err := sdk.Init(sdk.ClientOptions{
@@ -30,7 +30,7 @@ func Init(cfg Config) error {
 		Debug:            cfg.Debug,
 		DisableLogs:      cfg.Logging.Disable,
 	}); err != nil {
-		return Domain.Mark(err, ErrInit)
+		return Domain.Mark(err, ErrInit) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 
 	return nil

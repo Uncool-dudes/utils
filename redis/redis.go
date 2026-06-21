@@ -47,7 +47,7 @@ func (s *Service) connect(ctx context.Context) error {
 			}
 			pool := x509.NewCertPool()
 			if !pool.AppendCertsFromPEM(pem) {
-				return Domain.New("invalid ca cert pem")
+				return Domain.New("invalid ca cert pem") //nolint:wrapcheck // Domain.New is the error origin
 			}
 			tlsCfg.RootCAs = pool
 		}
@@ -65,7 +65,7 @@ func (s *Service) connect(ctx context.Context) error {
 	if err := s.client.Ping(pingCtx).Err(); err != nil {
 		_ = s.client.Close()
 		s.client = nil
-		return Domain.Mark(err, ErrPingFailed)
+		return Domain.Mark(err, ErrPingFailed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	return nil
@@ -79,7 +79,7 @@ func (s *Service) Client() *goredis.Client {
 // Close closes the Redis connection.
 func (s *Service) Close() error {
 	if s.client != nil {
-		return s.client.Close()
+		return Domain.Wrap(s.client.Close(), "close")
 	}
 	return nil
 }

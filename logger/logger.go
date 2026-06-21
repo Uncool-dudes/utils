@@ -32,12 +32,12 @@ func New(cfg Config, opts ...Option) (*Service, error) {
 
 	atom, err := parseAtomicLevel(cfg.Level)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrInvalidLevel)
+		return nil, Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	stackLevel, err := parseLevel(cfg.StacktraceLevel)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrInvalidLevel)
+		return nil, Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	sinks := cfg.Sinks
@@ -117,7 +117,7 @@ func (s *Service) SetLevel(l zapcore.Level) { s.atom.SetLevel(l) }
 func (s *Service) Reload(cfg Config, opts ...Option) error {
 	lvl, err := parseLevel(cfg.Level)
 	if err != nil {
-		return Domain.Mark(err, ErrInvalidLevel)
+		return Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	s.atom.SetLevel(lvl)
 
@@ -189,40 +189,47 @@ func buildCore(s *SinkConfig, atom zap.AtomicLevel, cfg Config) (zapcore.Core, e
 	}
 	lvl, err := parseLevel(s.Level)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrInvalidLevel)
+		return nil, Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	return zapcore.NewCore(enc, w, zap.LevelEnablerFunc(func(l zapcore.Level) bool {
 		return l >= lvl && atom.Enabled(l)
 	})), nil
 }
 
+const (
+	encodingConsole = "console"
+	encodingJSON    = "json"
+	sinkStdout      = "stdout"
+	sinkStderr      = "stderr"
+)
+
 func buildEncoder(encoding string, development bool) (zapcore.Encoder, error) {
 	if encoding == "" {
 		if development {
-			encoding = "console"
+			encoding = encodingConsole
 		} else {
-			encoding = "json"
+			encoding = encodingJSON
 		}
 	}
 	ecfg := zap.NewProductionEncoderConfig()
 	ecfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	switch encoding {
-	case "json":
+	case encodingJSON:
 		return zapcore.NewJSONEncoder(ecfg), nil
-	case "console":
+	case encodingConsole:
 		ecfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		return zapcore.NewConsoleEncoder(ecfg), nil
 	default:
-		return nil, Domain.Mark(fmt.Errorf("unknown encoding %q", encoding), ErrInvalidEncoding)
+		return nil, Domain.Mark(fmt.Errorf("unknown encoding %q", encoding), ErrInvalidEncoding) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 }
 
 func buildWriter(s *SinkConfig) (zapcore.WriteSyncer, error) {
 	path := s.Path
 	if path == "" {
-		path = "stdout"
+		path = sinkStdout
 	}
-	if path == "stdout" || path == "stderr" {
+	if path == sinkStdout || path == sinkStderr {
 		ws, _, err := zap.Open(path)
 		if err != nil {
 			return ws, Domain.Wrapf(err, "open %s", path)
@@ -254,7 +261,7 @@ func parseAtomicLevel(s string) (zap.AtomicLevel, error) {
 	}
 	lvl, err := zapcore.ParseLevel(s)
 	if err != nil {
-		return zap.AtomicLevel{}, Domain.Mark(err, ErrInvalidLevel)
+		return zap.AtomicLevel{}, Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return zap.NewAtomicLevelAt(lvl), nil
 }
@@ -265,7 +272,7 @@ func parseLevel(s string) (zapcore.Level, error) {
 	}
 	lvl, err := zapcore.ParseLevel(s)
 	if err != nil {
-		return zapcore.InfoLevel, Domain.Mark(err, ErrInvalidLevel)
+		return zapcore.InfoLevel, Domain.Mark(err, ErrInvalidLevel) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return lvl, nil
 }

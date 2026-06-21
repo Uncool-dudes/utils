@@ -14,7 +14,7 @@ import (
 func Publish[T any](ctx context.Context, pub message.Publisher, topic string, v T) error {
 	payload, err := json.Marshal(v)
 	if err != nil {
-		return Domain.Mark(err, ErrMarshal)
+		return Domain.Mark(err, ErrMarshal) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	msg := message.NewMessage(watermill.NewUUID(), payload)
 	msg.SetContext(ctx)
@@ -22,7 +22,7 @@ func Publish[T any](ctx context.Context, pub message.Publisher, topic string, v 
 		middleware.SetCorrelationID(watermill.NewUUID(), msg)
 	}
 	if err := pub.Publish(topic, msg); err != nil {
-		return Domain.Mark(err, ErrPublish)
+		return Domain.Mark(err, ErrPublish) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return nil
 }

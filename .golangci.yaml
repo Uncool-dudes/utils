@@ -18,18 +18,27 @@ linters:
   enable:
     - bodyclose
     - contextcheck
+    - durationcheck
     - errcheck
     - exhaustive
+    - gochecknoinits
+    - goconst
     - gocritic
     - govet
     - ineffassign
     - misspell
+    - nilerr
+    - nilnil
     - noctx
     - nolintlint
     - prealloc
     - revive
     - staticcheck
+    - thelper
+    - tparallel
+    - unparam
     - unused
+    - wrapcheck
 
   settings:
     exhaustive:
@@ -47,8 +56,11 @@ linters:
         - name: error-return
         - name: error-strings
         - name: increment-decrement
-
 issues:
   exclude-rules:
     - path: _mock\.go$
       linters: [all]
+    # Domain.Mark/Wrap/Wrapf/New/Newf/Combine ARE the wrapping layer, not unwrapped errors.
+    # wrapcheck cannot be configured to recognise custom wrapping functions in golangci-lint v2.
+    - linters: [wrapcheck]
+      source: "Domain\\.(Mark|Wrap|Wrapf|New|Newf)|errors\\.Combine|c\\.cb\\.Execute|ctx\\.Err\\(\\)"

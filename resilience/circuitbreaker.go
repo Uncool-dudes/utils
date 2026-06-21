@@ -78,7 +78,7 @@ func NewCircuitBreaker(cfg CBConfig) *CircuitBreaker {
 
 // Execute runs fn through the circuit breaker.
 func (c *CircuitBreaker) Execute(fn func() (any, error)) (any, error) {
-	return c.cb.Execute(fn)
+	return c.cb.Execute(fn) //nolint:wrapcheck // gobreaker errors pass through fn or are sentinels
 }
 
 // State returns the current circuit breaker state.

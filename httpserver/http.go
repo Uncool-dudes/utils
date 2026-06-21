@@ -52,7 +52,7 @@ func (s *HttpServer) Router() *chi.Mux {
 func (s *HttpServer) Start() error {
 	ln, err := net.Listen("tcp", s.config.Addr) //nolint:noctx // Start has no context; bind errors surface synchronously
 	if err != nil {
-		return Domain.Mark(err, ErrStartFailed)
+		return Domain.Mark(err, ErrStartFailed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	s.ln = ln
 	go func() {
@@ -77,11 +77,11 @@ func (s *HttpServer) Reload(cfg Config) {
 func (s *HttpServer) Shutdown(ctx context.Context) error {
 	if ctx.Err() != nil {
 		_ = s.ln.Close()
-		return ctx.Err()
+		return ctx.Err() //nolint:wrapcheck // context.Err() is idiomatic to return unwrapped
 	}
 	if err := s.srv.Shutdown(ctx); err != nil {
 		_ = s.ln.Close()
-		return Domain.Mark(err, ErrShutdown)
+		return Domain.Mark(err, ErrShutdown) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	return nil
 }

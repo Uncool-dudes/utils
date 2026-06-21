@@ -120,14 +120,15 @@ type scramClient struct {
 func (x *scramClient) Begin(userName, password, authzID string) (err error) {
 	x.client, err = x.HashGeneratorFcn.NewClient(userName, password, authzID)
 	if err != nil {
-		return err
+		return Domain.Wrap(err, "scram begin")
 	}
 	x.clientConversation = x.client.NewConversation()
 	return nil
 }
 
 func (x *scramClient) Step(challenge string) (string, error) {
-	return x.clientConversation.Step(challenge)
+	response, err := x.clientConversation.Step(challenge)
+	return response, Domain.Wrap(err, "scram step")
 }
 
 func (x *scramClient) Done() bool { return x.clientConversation.Done() }

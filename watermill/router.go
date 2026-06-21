@@ -20,7 +20,7 @@ func NewRouter(pub message.Publisher, cfg Config, log *zap.Logger) (*message.Rou
 
 	router, err := message.NewRouter(message.RouterConfig{}, wlog)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrRouter)
+		return nil, Domain.Mark(err, ErrRouter) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 
 	poisonMiddleware, err := middleware.PoisonQueue(pub, cfg.poisonTopic())

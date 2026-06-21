@@ -49,7 +49,7 @@ type Provider struct {
 // Shutdown drains buffered spans, flushes metrics, and flushes log records.
 // Pass a context with a timeout — the fx module uses 5 seconds.
 func (p *Provider) Shutdown(ctx context.Context) error {
-	return errors.Combine(
+	return errors.Combine( //nolint:wrapcheck // errors.Combine is the wrapping layer
 		Domain.Wrapf(p.tracer.Shutdown(ctx), "shutdown tracer provider"),
 		errors.Combine(
 			Domain.Wrapf(p.meter.Shutdown(ctx), "shutdown meter provider"),
@@ -63,7 +63,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 // cfg.Disable == true installs noop providers (useful in unit tests).
 func New(cfg Config) (*Provider, error) {
 	if err := validate.Struct(cfg); err != nil {
-		return nil, Domain.Mark(err, ErrInvalidConfig)
+		return nil, Domain.Mark(err, ErrInvalidConfig) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	res, err := buildResource(cfg)
@@ -153,7 +153,7 @@ func buildTracerProvider(cfg Config, res *resource.Resource, conn *grpc.ClientCo
 		)
 	}
 	if err != nil {
-		return nil, Domain.Mark(err, ErrInit)
+		return nil, Domain.Mark(err, ErrInit) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	sampler := sdktrace.ParentBased(sdktrace.TraceIDRatioBased(cfg.SampleRate))
@@ -181,7 +181,7 @@ func buildMeterProvider(cfg Config, res *resource.Resource, conn *grpc.ClientCon
 	case ExporterStdout:
 		exp, e := stdoutmetric.New()
 		if e != nil {
-			return nil, Domain.Mark(e, ErrInit)
+			return nil, Domain.Mark(e, ErrInit) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 		}
 		reader = sdkmetric.NewPeriodicReader(exp, sdkmetric.WithInterval(15*time.Second))
 	case ExporterOTLP:
@@ -192,13 +192,13 @@ func buildMeterProvider(cfg Config, res *resource.Resource, conn *grpc.ClientCon
 			otlpmetricgrpc.WithTimeout(10*time.Second),
 		)
 		if e != nil {
-			return nil, Domain.Mark(e, ErrInit)
+			return nil, Domain.Mark(e, ErrInit) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 		}
 		reader = sdkmetric.NewPeriodicReader(exp, sdkmetric.WithInterval(15*time.Second))
 	default: // prometheus — use a separate Prometheus/Mimir instance
 		reader, err = promexporter.New()
 		if err != nil {
-			return nil, Domain.Mark(err, ErrInit)
+			return nil, Domain.Mark(err, ErrInit) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 		}
 	}
 
@@ -229,7 +229,7 @@ func buildLoggerProvider(cfg Config, res *resource.Resource, conn *grpc.ClientCo
 		)
 	}
 	if err != nil {
-		return nil, Domain.Mark(err, ErrInit)
+		return nil, Domain.Mark(err, ErrInit) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 
 	return sdklog.NewLoggerProvider(

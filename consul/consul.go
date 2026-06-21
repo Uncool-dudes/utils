@@ -19,7 +19,7 @@ type Client struct {
 func New(cfg Config) (*Client, error) {
 	host, port, err := net.SplitHostPort(cfg.Addr)
 	if err != nil {
-		return nil, Domain.Mark(fmt.Errorf("invalid addr %q: %w", cfg.Addr, err), ErrInvalidAddr)
+		return nil, Domain.Mark(fmt.Errorf("invalid addr %q: %w", cfg.Addr, err), ErrInvalidAddr) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	_ = port
 
@@ -28,7 +28,7 @@ func New(cfg Config) (*Client, error) {
 
 	raw, err := api.NewClient(c)
 	if err != nil {
-		return nil, Domain.Mark(err, ErrConnect)
+		return nil, Domain.Mark(err, ErrConnect) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return &Client{raw: raw, cfg: cfg}, nil
 }
@@ -91,7 +91,7 @@ func ensureTag(tags []string, tag string) []string {
 func (c *Client) Lookup(svcName string) (string, error) {
 	entries, _, err := c.raw.Health().Service(svcName, "", true, nil)
 	if err != nil {
-		return "", Domain.Mark(err, ErrLookup)
+		return "", Domain.Mark(err, ErrLookup) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	if len(entries) == 0 {
 		return "", Domain.Wrapf(ErrNoInstances, "service %s", svcName)
@@ -110,7 +110,7 @@ func (c *Client) Deregister() error {
 		return nil
 	}
 	if err := c.raw.Agent().ServiceDeregister(c.svcID); err != nil {
-		return Domain.Mark(err, ErrDeregister)
+		return Domain.Mark(err, ErrDeregister) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}
 	return nil
 }

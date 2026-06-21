@@ -40,7 +40,7 @@ func NewConnected(ctx context.Context, cfg Config) (*Service, error) {
 func (o *Service) connect(ctx context.Context) error {
 	cfg, err := pgxpool.ParseConfig(o.config.URL)
 	if err != nil {
-		return Domain.Mark(err, ErrConnFailed)
+		return Domain.Mark(err, ErrConnFailed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	if o.config.MinConns > 0 {
@@ -67,7 +67,7 @@ func (o *Service) connect(ctx context.Context) error {
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return Domain.Mark(err, ErrConnFailed)
+		return Domain.Mark(err, ErrConnFailed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	pingCtx := ctx
@@ -78,7 +78,7 @@ func (o *Service) connect(ctx context.Context) error {
 	}
 	if err := pool.Ping(pingCtx); err != nil {
 		pool.Close()
-		return Domain.Mark(err, ErrPingFailed)
+		return Domain.Mark(err, ErrPingFailed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 
 	o.pool = pool

@@ -13,7 +13,7 @@ import (
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	m, err := rivermigrate.New(riverpgxv5.New(pool), nil)
 	if err != nil {
-		return Domain.Mark(err, ErrMigrate)
+		return Domain.Mark(err, ErrMigrate) //nolint:wrapcheck // Domain.Mark is the wrapping layer
 	}
 	_, err = m.Migrate(ctx, rivermigrate.DirectionUp, nil)
 	return Domain.Wrap(err, "river migrate")
