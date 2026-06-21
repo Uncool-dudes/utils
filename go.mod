@@ -31,6 +31,7 @@ require (
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.39.0
 	github.com/riverqueue/river/rivertype v0.39.0
 	github.com/sony/gobreaker/v2 v2.4.0
+	github.com/wneessen/go-mail v0.7.3
 	github.com/xdg-go/scram v1.2.0
 	go.opentelemetry.io/contrib/bridges/otelzap v0.10.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
