@@ -187,10 +187,27 @@ func (cp *Parser[T]) Watch(onChange func(T, error)) error {
 	return nil
 }
 
+const tagName = "koanf"
+
+// Load unmarshals the koanf subtree at key into T starting from defaults, then validates.
+// Use an empty key to unmarshal from the root.
+//
+//	redisCfg, err := config.Load[redis.Config](k, "redis", redis.Defaults)
+func Load[T any](k *koanf.Koanf, key string, defaults T) (T, error) {
+	out := defaults
+	if err := k.UnmarshalWithConf(key, &out, koanf.UnmarshalConf{Tag: tagName}); err != nil {
+		return out, Domain.Mark(err, ErrMalformed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
+	}
+	if err := validator.New().Struct(out); err != nil {
+		return out, Domain.Mark(err, ErrMalformed) //nolint:wrapcheck // Domain.Mark is the wrapping layer
+	}
+	return out, nil
+}
+
 // --- helpers ---
 
 func unmarshal[T any](k *koanf.Koanf, out *T) error {
-	return Domain.Wrap(k.UnmarshalWithConf("", out, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal")
+	return Domain.Wrap(k.UnmarshalWithConf("", out, koanf.UnmarshalConf{Tag: tagName}), "unmarshal")
 }
 
 func parserFor(path string) (koanf.Parser, error) {
@@ -256,7 +273,7 @@ func WithDefaultsFrom(v any, prefix string) Option {
 	return func(o *options) {
 		var m map[string]any
 		dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-			TagName: "koanf",
+			TagName: tagName,
 			Result:  &m,
 		})
 		if err != nil {
