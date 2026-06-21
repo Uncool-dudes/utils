@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hashicorp/consul/api"
+	api "github.com/hashicorp/consul/api/v2"
 )
 
 // Client wraps the Consul API client with registration helpers.
