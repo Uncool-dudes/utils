@@ -59,3 +59,60 @@ JSON response shape:
 ```json
 {"code": "ERR_USER_NOT_FOUND", "message": "user not found"}
 ```
+
+## Panic recovery
+
+```go
+r.Use(middleware.Recovery(log))
+// Catches panics, logs with stack trace at ERROR level, returns 500.
+// Mount before Logger so panics are still logged with request context.
+```
+
+## Distributed rate limiting
+
+Redis-backed, chi-compatible. Fails open on Redis outage.
+
+```go
+// IP-based (default)
+r.Use(middleware.RateLimit(redisClient, log, middleware.RateLimitConfig{
+    Limit:  100,
+    Window: time.Minute,
+}))
+
+// Per-user via JWT claim already in context
+r.Use(middleware.RateLimit(redisClient, log, middleware.RateLimitConfig{
+    Limit:     1000,
+    Window:    time.Minute,
+    KeyMode:   "user",
+    UserClaim: "sub",
+}))
+
+// Custom key
+r.Use(middleware.RateLimit(redisClient, log, middleware.RateLimitConfig{
+    KeyMode: "custom",
+    KeyFunc: func(r *http.Request) string {
+        return r.Header.Get("X-Tenant-ID")
+    },
+}))
+```
+
+Returns `429 Too Many Requests` + `Retry-After` header on limit exceeded.
+
+| Field | Default | Notes |
+|---|---|---|
+| `Algorithm` | `"sliding_window"` | `"fixed_window"` available |
+| `KeyMode` | `"ip"` | `"user"`, `"custom"` |
+| `Epsilon` | `0.01` | Sliding window accuracy (1% error) |
+
+## Circuit breaker transport
+
+Wraps `http.Client` outbound calls with a circuit breaker.
+
+```go
+cb := resilience.NewCircuitBreaker(resilience.CBDefaults)
+client := &http.Client{
+    Transport: middleware.CircuitBreakerTransport(cb, http.DefaultTransport),
+}
+```
+
+See [`resilience/REFERENCE.md`](../resilience/REFERENCE.md) for circuit breaker config.
