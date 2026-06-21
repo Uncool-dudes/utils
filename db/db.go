@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ratchio/utils/errors"
+	"github.com/uncool-dudes/utils/errors"
 )
 
 var Domain = errors.NewDomain("db")

@@ -8,7 +8,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
-	"github.com/ratchio/utils/httpserver"
+	"github.com/uncool-dudes/utils/httpserver"
 )
 
 // ModuleFor returns an fx.Module that registers svcName with Consul on startup

@@ -35,7 +35,7 @@ var Defaults = Config{
 	Insecure:       true,
 	SampleRate:     1.0,
 	TraceExporter:  ExporterOTLP,
-	MetricExporter: ExporterPrometheus,
+	MetricExporter: ExporterOTLP,
 	LogExporter:    ExporterOTLP,
 	Headers:        map[string]string{},
 }

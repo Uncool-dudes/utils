@@ -12,7 +12,7 @@
 // logged via zap.Object("field", val). Raw values are never emitted to logs.
 package pii
 
-import "github.com/ratchio/utils/errors"
+import "github.com/uncool-dudes/utils/errors"
 
 //nolint:gochecknoglobals
 var Domain = errors.NewDomain("pii")

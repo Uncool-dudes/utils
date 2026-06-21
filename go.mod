@@ -1,4 +1,4 @@
-module github.com/ratchio/utils
+module github.com/uncool-dudes/utils
 
 go 1.26.3
 

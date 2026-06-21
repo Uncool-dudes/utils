@@ -4,7 +4,7 @@ import (
 	sdk "github.com/getsentry/sentry-go"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/ratchio/utils/errors"
+	"github.com/uncool-dudes/utils/errors"
 )
 
 var (

@@ -31,7 +31,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/ratchio/utils/errors"
+	"github.com/uncool-dudes/utils/errors"
 )
 
 var (

@@ -1,6 +1,6 @@
 package logger
 
-import "github.com/ratchio/utils/errors"
+import "github.com/uncool-dudes/utils/errors"
 
 //nolint:gochecknoglobals
 var Domain = errors.NewDomain("logger")

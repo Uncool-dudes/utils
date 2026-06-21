@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
-	"github.com/ratchio/utils/errors"
+	"github.com/uncool-dudes/utils/errors"
 )
 
 var Domain = errors.NewDomain("httpserver")

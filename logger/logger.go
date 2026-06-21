@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/ratchio/utils/errors"
+	"github.com/uncool-dudes/utils/errors"
 )
 
 // Service wraps a zap.Logger with atomic level control and hot-reload support.
