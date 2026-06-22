@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -102,6 +103,12 @@ func (c *Client) Lookup(svcName string) (string, error) {
 		addr = e.Node.Address
 	}
 	return net.JoinHostPort(addr, fmt.Sprint(e.Service.Port)), nil
+}
+
+// Ping checks the Consul agent is reachable. Satisfies the health check interface.
+func (c *Client) Ping(_ context.Context) error {
+	_, err := c.raw.Agent().Self()
+	return err
 }
 
 // Deregister removes the service registered by Register.

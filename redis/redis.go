@@ -71,6 +71,11 @@ func (s *Service) connect(ctx context.Context) error {
 	return nil
 }
 
+// Ping checks the Redis connection is alive. Satisfies the health check interface.
+func (s *Service) Ping(ctx context.Context) error {
+	return s.client.Ping(ctx).Err()
+}
+
 // Client returns the underlying go-redis client. Safe after OnStart.
 func (s *Service) Client() *goredis.Client {
 	return s.client

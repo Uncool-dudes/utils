@@ -7,7 +7,7 @@ type LoggingOptions struct {
 
 // Config holds Sentry initialisation options sourced from the service config file.
 type Config struct {
-	DSN              string            `json:"dsn"               validate:"required"`
+	DSN              string            `json:"dsn"`
 	Environment      string            `json:"environment"       validate:"omitempty,oneof=production staging development"`
 	ServerName       string            `json:"server_name"`
 	Tags             map[string]string `json:"tags"`

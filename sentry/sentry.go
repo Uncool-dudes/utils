@@ -13,8 +13,12 @@ var Domain = errors.NewDomain("sentry")
 var validate = validator.New()
 
 // Init initialises the global Sentry hub. Call once before any goroutines that
-// may panic or call CaptureException. Omit the sentry config block to skip init.
+// may panic or call CaptureException. Omit the sentry config block or leave DSN
+// empty to skip init (safe for local dev).
 func Init(cfg Config) error {
+	if cfg.DSN == "" {
+		return nil
+	}
 	if err := validate.Struct(cfg); err != nil {
 		return Domain.Mark(err, ErrInvalidConfig) //nolint:wrapcheck // Domain.Mark/New is the wrapping layer
 	}

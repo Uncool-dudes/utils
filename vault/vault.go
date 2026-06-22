@@ -219,6 +219,13 @@ func (s *Service) WatchLease(
 	return watcher.Stop, nil
 }
 
+// Ping checks the Vault server is reachable via seal status (no auth required).
+// Satisfies the health check interface.
+func (s *Service) Ping(ctx context.Context) error {
+	_, err := s.client.Sys().SealStatusWithContext(ctx)
+	return err
+}
+
 // Close stops token renewal and releases resources.
 func (s *Service) Close() error {
 	if s.tokenWatch != nil {
