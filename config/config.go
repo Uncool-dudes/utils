@@ -26,6 +26,11 @@
 // Nested env var overrides use __ as the key delimiter:
 //
 //	APP_LOGGER__LEVEL=debug  →  cfg.Logger.Level = "debug"
+//
+// Overlay files are loaded before the base config so the base wins:
+//
+//	HIRING_OVERLAY_FILES=/etc/shared/microservices.json:/etc/shared/secrets.json
+//	config.New("hiring.json", config.WithOverlayFiles("HIRING_OVERLAY_FILES"))
 package config
 
 import (
@@ -89,23 +94,13 @@ func New[T any](path string, opts ...Option) (*Parser[T], error) {
 		}
 	}
 
+	if err := loadOverlays(k, cfg.overlayFiles); err != nil {
+		return nil, err
+	}
+
 	fp := file.Provider(path)
 	if err := k.Load(fp, parser); err != nil {
 		return nil, Domain.Wrap(err, "read config")
-	}
-
-	if cfg.overlayEnvVarName != "" {
-		if appEnv := os.Getenv(cfg.overlayEnvVarName); appEnv != "" {
-			ext := filepath.Ext(path)
-			base := strings.TrimSuffix(filepath.Base(path), ext)
-			cfg.overlayPath = filepath.Join(filepath.Dir(path), base+"."+appEnv+ext)
-		}
-	}
-	if cfg.overlayPath != "" {
-		if _, statErr := os.Stat(cfg.overlayPath); statErr == nil {
-			op, _ := parserFor(cfg.overlayPath)
-			_ = k.Load(file.Provider(cfg.overlayPath), op)
-		}
 	}
 
 	prefix := strings.ToUpper(cfg.envPrefix) + "_"
@@ -149,16 +144,15 @@ func (cp *Parser[T]) Watch(onChange func(T, error)) error {
 		if len(cp.opts.defaults) > 0 {
 			_ = k.Load(confmap.Provider(cp.opts.defaults, "."), nil)
 		}
+		if loadErr := loadOverlays(k, cp.opts.overlayFiles); loadErr != nil {
+			var zero T
+			onChange(zero, loadErr)
+			return
+		}
 		if loadErr := k.Load(cp.fp, cp.parser); loadErr != nil {
 			var zero T
 			onChange(zero, Domain.Wrap(loadErr, "reload config"))
 			return
-		}
-		if cp.opts.overlayPath != "" {
-			if _, statErr := os.Stat(cp.opts.overlayPath); statErr == nil {
-				op, _ := parserFor(cp.opts.overlayPath)
-				_ = k.Load(file.Provider(cp.opts.overlayPath), op)
-			}
 		}
 		prefix := strings.ToUpper(cp.opts.envPrefix) + "_"
 		_ = k.Load(env.Provider(prefix, ".", func(s string) string {
@@ -206,6 +200,23 @@ func Load[T any](k *koanf.Koanf, key string, defaults T) (T, error) {
 
 // --- helpers ---
 
+// loadOverlays loads each path in order into k. Missing files are silently skipped.
+func loadOverlays(k *koanf.Koanf, paths []string) error {
+	for _, p := range paths {
+		if _, err := os.Stat(p); err != nil {
+			continue
+		}
+		op, err := parserFor(p)
+		if err != nil {
+			return Domain.Wrap(err, "select overlay parser")
+		}
+		if err := k.Load(file.Provider(p), op); err != nil {
+			return Domain.Wrap(err, "load overlay")
+		}
+	}
+	return nil
+}
+
 func unmarshal[T any](k *koanf.Koanf, out *T) error {
 	return Domain.Wrap(k.UnmarshalWithConf("", out, koanf.UnmarshalConf{Tag: tagName}), "unmarshal")
 }
@@ -226,11 +237,10 @@ func parserFor(path string) (koanf.Parser, error) {
 // --- options ---
 
 type options struct {
-	err               error
-	defaults          map[string]any
-	envPrefix         string
-	overlayEnvVarName string
-	overlayPath       string // computed in New from overlayEnvVarName + primary path
+	err          error
+	defaults     map[string]any
+	envPrefix    string
+	overlayFiles []string
 }
 
 // Option is a functional option for [New].
@@ -242,8 +252,8 @@ func WithEnvPrefix(prefix string) Option {
 	return func(o *options) { o.envPrefix = prefix }
 }
 
-// WithDefaults registers key/value pairs as koanf defaults, applied when the
-// config file omits those keys.
+// WithDefaults registers key/value pairs as koanf defaults, applied when neither
+// overlay files nor the base config file provide those keys.
 func WithDefaults(d map[string]any) Option {
 	return func(o *options) {
 		if o.defaults == nil {
@@ -255,16 +265,25 @@ func WithDefaults(d map[string]any) Option {
 	}
 }
 
-// WithEnvOverlay enables environment-specific config overlays.
-// It reads envVarName at startup (e.g. "APP_ENV") and, if set, loads a sibling file
-// named config.<value>.yaml alongside the primary config. Missing overlay files are
-// silently ignored. Overlay values take precedence over the primary file but are
-// overridden by env vars.
+// WithOverlayFiles reads envVarName from the environment and interprets it as a
+// colon-separated list of config file paths to load before the base config.
+// Overlays are loaded in order; the base config overrides them; env vars override everything.
+// Missing files are silently skipped.
 //
-//	config.New("config.yaml", config.WithEnvOverlay("APP_ENV"))
-//	# APP_ENV=staging → loads config.staging.yaml if it exists
-func WithEnvOverlay(envVarName string) Option {
-	return func(o *options) { o.overlayEnvVarName = envVarName }
+//	config.New("hiring.json", config.WithOverlayFiles("HIRING_OVERLAY_FILES"))
+//	# HIRING_OVERLAY_FILES=/etc/shared/microservices.json:/etc/shared/secrets.json
+func WithOverlayFiles(envVarName string) Option {
+	return func(o *options) {
+		val := os.Getenv(envVarName)
+		if val == "" {
+			return
+		}
+		for _, p := range strings.Split(val, ":") {
+			if p = strings.TrimSpace(p); p != "" {
+				o.overlayFiles = append(o.overlayFiles, p)
+			}
+		}
+	}
 }
 
 // WithDefaultsFrom serializes a struct into koanf defaults using mapstructure tags.
